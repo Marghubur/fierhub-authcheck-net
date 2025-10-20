@@ -4,11 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>fierhub_authcheck_net</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bt.Ems.Lib.PipelineConfig" Version="1.0.66" />
+    <PackageReference Include="Bt.Ems.Lib.PipelineConfig" Version="1.0.69" />
   </ItemGroup>
 
 </Project>

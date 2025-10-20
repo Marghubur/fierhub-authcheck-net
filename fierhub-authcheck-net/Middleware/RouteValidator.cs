@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace fierhub_authcheck_net.Middleware
 {
-    public class RouteValidator
+    public class RouteValidator(SessionDetail _currentSession)
     {
         // private readonly List<string> _routes = new List<string>();
 
@@ -17,14 +17,12 @@ namespace fierhub_authcheck_net.Middleware
             }
         }
 
-        public async Task TestConnection(CurrentSession currentSession)
+        public void TestConnection()
         {
-            if (string.IsNullOrEmpty(currentSession.LocalConnectionString))
+            if (string.IsNullOrEmpty(_currentSession.LocalConnectionString))
             {
                 throw new EmstumException("Unable to find database detail. Please contact to admin.");
             }
-
-            await Task.CompletedTask;
         }
 
         public async Task TestAnonymous(RequestDelegate next, HttpContext context)

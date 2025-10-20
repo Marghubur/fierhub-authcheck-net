@@ -1,32 +1,39 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Common;
-using Bt.Ems.Lib.PipelineConfig.Model.Constants;
+﻿using Bt.Ems.Lib.PipelineConfig.Model.Constants;
 using Bt.Ems.Lib.PipelineConfig.Model.Constants.enums;
 using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
+using fierhub_authcheck_net.Middleware.Service;
 using fierhub_authcheck_net.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using TimeZoneConverter;
-using CurrentSession = fierhub_authcheck_net.Model.CurrentSession;
+using System.Security.Claims;
+using SessionDetail = fierhub_authcheck_net.Model.SessionDetail;
 
 namespace fierhub_authcheck_net.Middleware
 {
     public class RequestMiddleware(RequestDelegate _next,
-                                   RouteValidator _routeValidator,
-                                   IConfiguration _configuration)
+                                   RouteValidator _routeValidator)
     {
-        private readonly bool isDbConfigure = _configuration.GetValue<bool>("FireHub:DatabaseConfiguration");
-        public async Task Invoke(HttpContext context, CurrentSession currentSession, IDb db, TokenRequestBody tokenRequestBody)
+        const string IsGatewayEnabled = "IsGatewayEnabled";
+
+        public async Task Invoke(HttpContext context,
+            SessionDetail session,
+            FierhubGatewayFilter gatewayAuthorization,
+            FierhubServiceFilter serviceAuthorization,
+            TokenRequestBody tokenRequestBody)
         {
             try
             {
                 var authorization = string.Empty;
                 var requestType = string.Empty;
                 var sessionJson = string.Empty;
+                var isGatewayEnabled = false;
+                var claimsValue = string.Empty;
+
                 await _routeValidator.TestAnonymous(_next, context);
+
+                // By pass for the login
+                await _routeValidator.TestRoute(_next, context);
 
                 Parallel.ForEach(context.Request.Headers, header =>
                 {
@@ -38,33 +45,41 @@ namespace fierhub_authcheck_net.Middleware
                                 authorization = header.Value.FirstOrDefault();
                                 break;
                             case ApplicationConstants.database:
-                                currentSession.LocalConnectionString = header.Value!;
+                                session.LocalConnectionString = header.Value!;
                                 break;
-                            case nameof(RequestTypeEnum.MicroserviceRequest):
-                                requestType = header.Value;
+                            case IsGatewayEnabled:
+                                isGatewayEnabled = true;
                                 break;
-                            case ApplicationConstants.SessionObject:
-                                sessionJson = header.Value;
+                            case "X-Claims":
+                                claimsValue = header.Value;
                                 break;
                         }
                     }
                 });
 
-                await _routeValidator.TestConnection(currentSession);
-                string userId = string.Empty;
-
-                if (!string.IsNullOrEmpty(authorization))
+                if (!isGatewayEnabled)
                 {
-                    sessionJson = GetSessionJsonAsync(authorization, currentSession, tokenRequestBody);
-                    LoadSession(sessionJson, currentSession);
-                }
-                else if (requestType == nameof(RequestTypeEnum.MicroserviceRequest))
-                {
-                    LoadSession(sessionJson, currentSession);
-                }
+                    var isService = true;
 
-                if (isDbConfigure)
-                    db.SetupConnectionString(currentSession.LocalConnectionString);
+                    if (!isService)
+                    {
+                        var claims = gatewayAuthorization.AuthorizationToken(authorization);
+                        context.Request.Headers.Append("X-Gateway-Enalbed", "1");
+                        context.Request.Headers.Append("X-Claims", JsonConvert.SerializeObject(claims));
+                    }
+                    else
+                    {
+                        _routeValidator.TestConnection();
+                        var claims = gatewayAuthorization.AuthorizationToken(authorization);
+                        serviceAuthorization.AuthorizationToken(claims);
+                    }
+                }
+                else
+                {
+                    _routeValidator.TestConnection();
+                    var mappedClaims = JsonConvert.DeserializeObject<Dictionary<string, string>>(claimsValue);
+                    serviceAuthorization.AuthorizationToken(mappedClaims);
+                }
 
                 await _next(context);
             }
@@ -76,61 +91,6 @@ namespace fierhub_authcheck_net.Middleware
             {
                 throw;
             }
-        }
-
-        private string GetSessionJsonAsync(string authorization, CurrentSession currentSession, TokenRequestBody tokenRequestBody)
-        {
-            string sessionJson = string.Empty;
-            string token = authorization.Replace(ApplicationConstants.JWTBearer, "").Trim();
-
-            if (!string.IsNullOrEmpty(token) && token != "null")
-            {
-
-                var handler = new JwtSecurityTokenHandler();
-                handler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = false,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = tokenRequestBody.Issuer,
-                    ValidAudience = tokenRequestBody.Issuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenRequestBody.Key))
-                }, out SecurityToken validatedToken);
-
-                JwtSecurityToken securityToken = handler.ReadToken(token) as JwtSecurityToken;
-                sessionJson = securityToken.Claims.FirstOrDefault(x => x.Type == ApplicationConstants.CurrentSession)!.Value;
-            }
-
-            return sessionJson;
-        }
-
-        private void LoadSession(string sessionJson, CurrentSession currentSession)
-        {
-            var session = JsonConvert.DeserializeObject<CurrentSession>(sessionJson);
-
-            currentSession.TimeZoneName = session.TimeZoneName;
-            currentSession.TimeZone = TZConvert.GetTimeZoneInfo(session.TimeZoneName);
-            currentSession.TimeZoneNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, currentSession.TimeZone);
-            currentSession.CompanyCode = session.CompanyCode;
-
-            currentSession.FinancialStartYear = session.FinancialStartYear;
-            currentSession.ManagerName = session.ManagerName;
-            currentSession.FullName = session.FullName;
-            currentSession.Mobile = session.Mobile;
-            currentSession.Email = session.Email;
-            currentSession.RoleId = session.RoleId;
-            currentSession.ManagerEmail = session.ManagerEmail;
-            currentSession.Culture = session.Culture;
-            currentSession.ReportingManagerId = session.ReportingManagerId;
-            currentSession.OrganizationId = session.OrganizationId;
-            currentSession.DesignationId = session.DesignationId;
-            currentSession.CompanyName = session.CompanyName;
-            currentSession.CompanyId = session.CompanyId;
-            currentSession.Authorization = session.Authorization;
-            currentSession.EmployeeCodeLength = session.EmployeeCodeLength;
-            currentSession.EmployeeCodePrefix = session.EmployeeCodePrefix;
-            currentSession.UserId = session.UserId;
         }
     }
 }

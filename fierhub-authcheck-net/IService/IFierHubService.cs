@@ -4,6 +4,9 @@ namespace fierhub_authcheck_net.IService
 {
     public interface IFierHubService
     {
-        Task<ApiResponse> GenerateToken(Dictionary<string, object> claims);
+        Task<ApiResponse> GenerateToken(object claims);
+        Task<ApiResponse> GenerateToken(object claims, string userId);
+        Task<ApiResponse> GenerateToken(object claims, List<string> roles);
+        Task<ApiResponse> GenerateToken(object claims, string userId, List<string> roles);
     }
 }

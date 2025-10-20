@@ -4,6 +4,7 @@ using fierhub_authcheck_net.IService;
 using fierhub_authcheck_net.Model;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace fierhub_authcheck_net.Service
 {
@@ -12,30 +13,99 @@ namespace fierhub_authcheck_net.Service
                                 TokenRequestBody _tokenRequestBody) : IFierHubService
     {
         private readonly string tokenManagerURL = _configuration.GetValue<string>("FireHub:TokenManager")!;
-        public async Task<ApiResponse> GenerateToken(Dictionary<string, object> claims)
+
+        public async Task<ApiResponse> GenerateToken(object claims)
         {
+            return await Generate(claimData: claims);
+        }
+
+        public async Task<ApiResponse> GenerateToken(object claims, string userId)
+        {
+            return await Generate(claims, userId);
+        }
+
+        public async Task<ApiResponse> GenerateToken(object claims, List<string> roles)
+        {
+            return await Generate(claimData: claims, roles: roles);
+        }
+
+        public async Task<ApiResponse> GenerateToken(object claims, string userId, List<string> roles)
+        {
+            return await Generate(claims, userId, roles);
+        }
+
+        public async Task<ApiResponse> Generate(object claimData, string userId = null, List<string> roles = null)
+        {
+            var claims = ConvertObjectToDictionary(claimData);
+
+            if (userId != null) claims.Add("fierhub_autogen_id", userId);
+            if (roles != null) claims.Add("fierhub_autogen_roles", roles.Aggregate((x, y) => x + "," + y);
+
             TokenRequestBody tokenRequestBody = new TokenRequestBody
             {
                 Claims = claims,
-                CompanyCode = _tokenRequestBody.CompanyCode,
                 ExpiryTimeInSeconds = _tokenRequestBody.ExpiryTimeInSeconds,
-                FileName = _tokenRequestBody.FileName,
                 Issuer = _tokenRequestBody.Issuer,
                 Key = _tokenRequestBody.Key,
-                ParentId = _tokenRequestBody.ParentId,
                 RefreshTokenExpiryTimeInSeconds = _tokenRequestBody.RefreshTokenExpiryTimeInSeconds,
-                RepositoryId = _tokenRequestBody.RepositoryId,
-                Roles = _tokenRequestBody.Roles,
-                TokenName = _tokenRequestBody.TokenName
             };
 
-            var result  = await _httpServiceRequest.PostRequestAsync<ApiResponse>(new ServicePayload
+            var result = await _httpServiceRequest.PostRequestAsync<ApiResponse>(new ServicePayload
             {
                 Endpoint = tokenManagerURL,
                 Payload = JsonConvert.SerializeObject(tokenRequestBody)
             }, false);
 
             return result;
+        }
+
+        public Dictionary<string, string> ConvertObjectToDictionary(object obj)
+        {
+            var dict = new Dictionary<string, string>();
+            if (obj == null)
+                return dict;
+
+            Type type = obj.GetType();
+
+            while (type != null)
+            {
+                // Get all fields
+                FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly);
+                foreach (var field in fields)
+                {
+                    try
+                    {
+                        object value = field.GetValue(obj);
+                        dict[field.Name] = value != null ? value.ToString() : null;
+                    }
+                    catch
+                    {
+                        // Handle exceptions if needed
+                    }
+                }
+
+                // Get all properties
+                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly);
+                foreach (var prop in properties)
+                {
+                    try
+                    {
+                        if (prop.GetIndexParameters().Length == 0) // ignore indexers
+                        {
+                            object value = prop.GetValue(obj);
+                            dict[prop.Name] = value != null ? value.ToString() : null;
+                        }
+                    }
+                    catch
+                    {
+                        // Handle exceptions if needed
+                    }
+                }
+
+                type = type.BaseType; // move to parent class
+            }
+
+            return dict;
         }
     }
 }

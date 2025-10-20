@@ -3,6 +3,7 @@ using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
 using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
 using fierhub_authcheck_net.IService;
 using fierhub_authcheck_net.Middleware;
+using fierhub_authcheck_net.Middleware.Service;
 using fierhub_authcheck_net.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -12,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Text;
-using CurrentSession = fierhub_authcheck_net.Model.CurrentSession;
+using CurrentSession = fierhub_authcheck_net.Model.SessionDetail;
 
 namespace fierhub_authcheck_net.Service
 {
@@ -34,18 +35,15 @@ namespace fierhub_authcheck_net.Service
             _services = services;
 
             _services.AddSingleton<IHttpServiceRequest, HttpServiceRequest>();
-            _services.AddSingleton<RouteValidator>();
-        }
-
-        public FierHubRegistry RegisterFierAuth()
-        {
+            _services.AddScoped<FierhubGatewayFilter>();
+            _services.AddScoped<FierhubServiceFilter>();
+            _services.AddScoped<FierhubCommonService>();
             _services.AddScoped<IFierHubService, FierHubService>();
-            //_services.AddHttpClient();
+            _services.AddSingleton<RouteValidator>();
 
             RegisterPerSessionClass();
             RegisterTokenRequestClass();
             RegisterJsonHandler();
-            return this;
         }
 
         private void RegisterPerSessionClass()
@@ -64,7 +62,7 @@ namespace fierhub_authcheck_net.Service
         private void RegisterTokenRequestClass()
         {
             var tokenRequest = GetTokenRequest();
-            _services.AddScoped(x =>
+            _services.AddSingleton(x =>
             {
                 return new TokenRequestBody
                 {
