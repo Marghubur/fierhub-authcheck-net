@@ -5,6 +5,13 @@
     <RootNamespace>fierhub_authcheck_net</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+
+	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	<PackageId>fierhub-authcheck-net</PackageId>
+	<Version>1.0.3</Version>
+	<Authors>Your Name</Authors>
+	<Company>BottomHalf</Company>
+	<Description>This is my budget package.</Description>
   </PropertyGroup>
 
   <ItemGroup>

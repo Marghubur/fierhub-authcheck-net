@@ -1,45 +1,44 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
+﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
+using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
 using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
 using fierhub_authcheck_net.IService;
 using fierhub_authcheck_net.Model;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Reflection;
 
 namespace fierhub_authcheck_net.Service
 {
-    public class FierHubService(IConfiguration _configuration,
-                                IHttpServiceRequest _httpServiceRequest,
+    public class FierHubService(IHttpServiceRequest _httpServiceRequest,
                                 TokenRequestBody _tokenRequestBody) : IFierHubService
     {
-        private readonly string tokenManagerURL = _configuration.GetValue<string>("FireHub:TokenManager")!;
+        private const string tokenManagerURL = "https://www.bottomhalf.in/bt/s3/ExternalTokenManager/generateToken";
 
-        public async Task<ApiResponse> GenerateToken(object claims)
+        public async Task<ApiAuthResponse> GenerateToken(object claims)
         {
             return await Generate(claimData: claims);
         }
 
-        public async Task<ApiResponse> GenerateToken(object claims, string userId)
+        public async Task<ApiAuthResponse> GenerateToken(object claims, string userId)
         {
             return await Generate(claims, userId);
         }
 
-        public async Task<ApiResponse> GenerateToken(object claims, List<string> roles)
+        public async Task<ApiAuthResponse> GenerateToken(object claims, List<string> roles)
         {
             return await Generate(claimData: claims, roles: roles);
         }
 
-        public async Task<ApiResponse> GenerateToken(object claims, string userId, List<string> roles)
+        public async Task<ApiAuthResponse> GenerateToken(object claims, string userId, List<string> roles)
         {
             return await Generate(claims, userId, roles);
         }
 
-        public async Task<ApiResponse> Generate(object claimData, string userId = null, List<string> roles = null)
+        public async Task<ApiAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null)
         {
             var claims = ConvertObjectToDictionary(claimData);
 
             if (userId != null) claims.Add("fierhub_autogen_id", userId);
-            if (roles != null) claims.Add("fierhub_autogen_roles", roles.Aggregate((x, y) => x + "," + y);
+            if (roles != null) claims.Add("fierhub_autogen_roles", roles.Aggregate((x, y) => x + "," + y));
 
             TokenRequestBody tokenRequestBody = new TokenRequestBody
             {
@@ -50,7 +49,7 @@ namespace fierhub_authcheck_net.Service
                 RefreshTokenExpiryTimeInSeconds = _tokenRequestBody.RefreshTokenExpiryTimeInSeconds,
             };
 
-            var result = await _httpServiceRequest.PostRequestAsync<ApiResponse>(new ServicePayload
+            var result = await _httpServiceRequest.PostRequestAsync<ApiAuthResponse>(new ServicePayload
             {
                 Endpoint = tokenManagerURL,
                 Payload = JsonConvert.SerializeObject(tokenRequestBody)

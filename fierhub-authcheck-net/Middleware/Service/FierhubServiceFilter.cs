@@ -1,9 +1,10 @@
-﻿using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
+﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
+using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
 using fierhub_authcheck_net.Model;
 
 namespace fierhub_authcheck_net.Middleware.Service
 {
-    public class FierhubServiceFilter(SessionDetail _session)
+    public class FierhubServiceFilter(SessionDetail _session, CurrentSession currentSession)
     {
         public void AuthorizationToken(Dictionary<string, string> mappedClaims)
         {
@@ -31,6 +32,49 @@ namespace fierhub_authcheck_net.Middleware.Service
             if (id != null)
             {
                 _session.Roles = roles.Split(",").ToList<string>();
+            }
+
+            var properties = typeof(CurrentSession).GetProperties();
+
+            if (claims.Count > 0)
+            {
+                foreach (var prop in properties)
+                {
+                    if (claims.TryGetValue(prop.Name, out var value) && value != null)
+                    {
+                        try
+                        {
+                            object convertedValue = null;
+                            if (prop.PropertyType == typeof(TimeZoneInfo))
+                            {
+                                var timeZone = TimeZoneInfo.GetSystemTimeZones()
+                                    .FirstOrDefault(tz => tz.DisplayName.Equals(value, StringComparison.OrdinalIgnoreCase));
+
+                                if (timeZone == null)
+                                {
+                                    try
+                                    {
+                                        timeZone = TimeZoneInfo.FindSystemTimeZoneById(value);
+                                    }
+                                    catch { /* ignore if invalid */ }
+                                }
+
+                                convertedValue = timeZone;
+                            }
+                            else
+                            {
+                                convertedValue = Convert.ChangeType(value, prop.PropertyType);
+                            }
+
+                            if (convertedValue != null)
+                                prop.SetValue(currentSession, convertedValue);
+                        }
+                        catch
+                        {
+                            // Optional: handle conversion errors (e.g. type mismatch)
+                        }
+                    }
+                }
             }
         }
     }
