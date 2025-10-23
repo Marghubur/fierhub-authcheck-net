@@ -21,7 +21,7 @@ namespace fierhub_authcheck_net.Model
 
         public class Secret
         {
-            public string Token { get; set; }
+        public string Token { get; set; }
             public TokenRequestBody TokenSecret { get; set; }
             public string FileName { get; set; }
         }
@@ -125,5 +125,7 @@ namespace fierhub_authcheck_net.Model
 
         public bool IsDatabaseConfigurationEnable { get; set; }
         public bool IsApiGatewayEnable { get; set; }
+        public string TokenConfigFileName { get; set; }
+        public string DbConfigFileName { get; set; }
     }
 }
