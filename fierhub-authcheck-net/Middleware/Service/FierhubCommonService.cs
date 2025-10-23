@@ -1,22 +1,23 @@
 ﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Common;
+using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
+using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
+using Bt.Ems.Lib.PipelineConfig.Model;
 using Bt.Ems.Lib.PipelineConfig.Model.Constants;
 using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
 using fierhub_authcheck_net.Model;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 
 namespace fierhub_authcheck_net.Middleware.Service
 {
-    public class FierhubCommonService(IConfiguration _configuration,
+    public class FierhubCommonService(FierHubConfig _fierHubConfig,
         SessionDetail currentSession,
         TokenRequestBody tokenRequestBody,
+        IHttpServiceRequest _httpServiceRequest,
         IDb db)
     {
-        private readonly bool isDbConfigure = _configuration.GetValue<bool>("FireHub:DatabaseConfiguration");
 
         public Dictionary<string, string> GetValidatedClaims(string authorization)
         {
@@ -50,12 +51,41 @@ namespace fierhub_authcheck_net.Middleware.Service
             return claims;
         }
 
-        public void LoadConfiguration()
+        public void LoadDbConfiguration()
         {
-            if (isDbConfigure)
+            if (_fierHubConfig.IsDatabaseConfigurationEnable)
             {
-                db.SetupConnectionString(currentSession.LocalConnectionString);
+                if (!string.IsNullOrEmpty(_fierHubConfig.DbConfigFileName))
+                {
+                    GetConnectionString();
+                }
+                else if (!string.IsNullOrEmpty(currentSession.LocalConnectionString))
+                {
+                    db.SetupConnectionString(currentSession.LocalConnectionString);
+                }
+                else
+                {
+
+                }
             }
+        }
+
+        private void GetConnectionString()
+        {
+            var payload = new
+            {
+                accessToken = _fierHubConfig.Token,
+                fileName = _fierHubConfig.DbConfigFileName
+            };
+
+            var responseModel = _httpServiceRequest.PostRequestAsync<ResponseModel>(new ServicePayload
+            {
+                Endpoint = "https://www.fierhub.com/api/fileContent/readFile",
+                Payload = JsonConvert.SerializeObject(payload)
+            }, false).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var dbconfig = JsonConvert.DeserializeObject<DbConfig>((string)responseModel!.responseBody!)!;
+            currentSession.LocalConnectionString = dbconfig.BuildConnectionString();
         }
     }
 }

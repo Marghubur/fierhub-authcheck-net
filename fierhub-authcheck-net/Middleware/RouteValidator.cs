@@ -1,37 +1,31 @@
-﻿using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
-using fierhub_authcheck_net.Model;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace fierhub_authcheck_net.Middleware
 {
-    public class RouteValidator(SessionDetail _currentSession)
+    public class RouteValidator(IConfiguration configuration)
     {
         // private readonly List<string> _routes = new List<string>();
 
-        public async Task TestRoute(RequestDelegate next, HttpContext context)
+        public bool TestRoute(RequestDelegate next, HttpContext context)
         {
-            if (await Task.FromResult(new[] { "Authenticate" }.Any(x => context.Request.Path.ToString().Contains(x))))
-            {
-                await next(context);
-            }
+            var _authorizedPaths = configuration.GetSection("Authorize").Get<List<string>>() ?? new List<string>();
+            return _authorizedPaths.Any(x => context.Request.Path.ToString().Contains(x, StringComparison.OrdinalIgnoreCase));
         }
 
-        public void TestConnection()
-        {
-            if (string.IsNullOrEmpty(_currentSession.LocalConnectionString))
-            {
-                throw new EmstumException("Unable to find database detail. Please contact to admin.");
-            }
-        }
+        //public void TestConnection()
+        //{
+        //    if (string.IsNullOrEmpty(_currentSession.LocalConnectionString))
+        //    {
+        //        throw new EmstumException("Unable to find database detail. Please contact to admin.");
+        //    }
+        //}
 
-        public async Task TestAnonymous(RequestDelegate next, HttpContext context)
+        public bool TestAnonymous(RequestDelegate next, HttpContext context)
         {
             var endpoint = context.GetEndpoint();
-            if (endpoint?.Metadata?.GetMetadata<AllowAnonymousAttribute>() != null)
-            {
-                await next(context);
-            }
+            return endpoint?.Metadata?.GetMetadata<AllowAnonymousAttribute>() != null;
         }
     }
 }
