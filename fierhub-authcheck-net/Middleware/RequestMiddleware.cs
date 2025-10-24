@@ -7,11 +7,10 @@ using Newtonsoft.Json;
 
 namespace fierhub_authcheck_net.Middleware
 {
-    public class RequestMiddleware(RequestDelegate _next,RouteValidator _routeValidator)
+    public class RequestMiddleware(RequestDelegate _next, FierHubConfig _fierHubConfig, RouteValidator _routeValidator)
     {
         public async Task Invoke(HttpContext context,
                                  SessionDetail session,
-                                 FierHubConfig _fierHubConfig,
                                  FierhubGatewayFilter gatewayAuthorization,
                                  FierhubServiceFilter serviceAuthorization
                                  )
@@ -24,7 +23,6 @@ namespace fierhub_authcheck_net.Middleware
                     await _next(context);
                     return;
                 }
-
 
                 if (_fierHubConfig.Configuration.IsGatewayService)
                 {

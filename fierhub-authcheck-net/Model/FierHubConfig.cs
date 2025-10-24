@@ -8,10 +8,38 @@ namespace fierhub_authcheck_net.Model
         public TokenRequestBody JwtSecret { get; set; }
         public DatasourceModel Datasource { get; set; }
         public AuthorizeModel Authorize { get; set; }
+        public ConfigurationModel ConfigurationGateway { get; set; }
+        public ConfigurationModel ConfigurationService { get; set; }
         public ConfigurationModel Configuration { get; set; }
         public List<ConnectionDetail> ConnectionDetails { get; set; }
         public List<TokenRequestBody> Secrets { get; set; }
         public Dictionary<string, string> Claims { set; get; }
+
+        private static readonly object _lock = new object();
+        private static FierHubConfig _instance = new FierHubConfig();
+
+        public static FierHubConfig Instance()
+        {
+            if( _instance == null)
+                lock (_lock)
+                    if(_instance == null)
+                        _instance = new FierHubConfig();
+
+            return _instance;
+        }
+
+        public void Initialize(DatasourceModel datasource,
+            AuthorizeModel authorize,
+            ConfigurationModel configuration,
+            List<ConnectionDetail> connectionDetails,
+            List<TokenRequestBody> secrets)
+        {
+            Datasource = datasource;
+            Authorize = authorize;
+            Configuration = configuration;
+            ConnectionDetails = connectionDetails;
+            Secrets = secrets;
+        }
 
         public T GetValue<T>(string key)
         {
@@ -149,6 +177,7 @@ namespace fierhub_authcheck_net.Model
 
         public bool UseDbConfigFromFierhub { get; set; }
         public bool UseTokenSecretFromFierhub { get; set; }
+        public bool IsFierhubDataLoadingCompleted { get; set; } = false;
         public bool ConfiguredFromFierhub { set; get; } = false;
     }
 }

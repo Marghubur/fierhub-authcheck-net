@@ -16,12 +16,10 @@ namespace Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequ
         private readonly ILogger<FierhubServiceRequest> _logger;
         private readonly JsonSerializerSettings _jsonSettings;
 
-        public FierhubServiceRequest(IHttpClientFactory httpClientFactory, ILogger<FierhubServiceRequest> logger, 
-            IOptions<MvcNewtonsoftJsonOptions> jsonOptions)
+        public FierhubServiceRequest(IHttpClientFactory httpClientFactory, ILogger<FierhubServiceRequest> logger)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _jsonSettings = jsonOptions.Value.SerializerSettings;
         }
 
         public async Task<T> PutRequestAsync<T>(string endpoint, string payload)

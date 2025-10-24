@@ -1,10 +1,7 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
-using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
+﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
 using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
 using fierhub_authcheck_net.IService;
 using fierhub_authcheck_net.Model;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Reflection;
 
@@ -14,14 +11,12 @@ namespace fierhub_authcheck_net.Service
     {
         private readonly FierhubServiceRequest _fierhubServiceRequest;
         private readonly FierHubConfig _fierHubConfig;
-        private readonly JsonSerializerSettings _jsonSettings;
         private const string tokenManagerURL = "https://www.bottomhalf.in/bt/s3/ExternalTokenManager/generateToken";
 
-        public FierHubService(FierhubServiceRequest fierhubServiceRequest, FierHubConfig fierHubConfig, IOptions<MvcNewtonsoftJsonOptions> jsonOptions)
+        public FierHubService(FierhubServiceRequest fierhubServiceRequest, FierHubConfig fierHubConfig)
         {
             _fierhubServiceRequest = fierhubServiceRequest;
             _fierHubConfig = fierHubConfig;
-            _jsonSettings = jsonOptions.Value.SerializerSettings;
         }
 
         public async Task<FierhubAuthResponse> GenerateToken(object claims)
@@ -62,7 +57,7 @@ namespace fierhub_authcheck_net.Service
 
             var result = await _fierhubServiceRequest.PostRequestAsync<FierhubAuthResponse>(            
                 tokenManagerURL,
-                JsonConvert.SerializeObject(tokenRequestBody, _jsonSettings)
+                JsonConvert.SerializeObject(tokenRequestBody)
             );
 
             return result;
