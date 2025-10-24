@@ -8,6 +8,7 @@
         public string Id { get; set; }
         public int ExpiryTimeInSeconds { get; set; }
         public int RefreshTokenExpiryTimeInSeconds { get; set; }
+        public bool IsPrimary { get; set; }
         public Dictionary<string, string> Claims { get; set; }
     }
 }

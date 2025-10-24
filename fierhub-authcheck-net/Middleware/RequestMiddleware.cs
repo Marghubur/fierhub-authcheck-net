@@ -1,32 +1,23 @@
-﻿using Bt.Ems.Lib.PipelineConfig.Model.Constants;
-using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
-using fierhub_authcheck_net.Middleware.Service;
+﻿using fierhub_authcheck_net.Middleware.Service;
 using fierhub_authcheck_net.Model;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace fierhub_authcheck_net.Middleware
 {
-    public class RequestMiddleware(RequestDelegate _next,
-                                   FierHubConfig _fierHubConfig,
-                                   RouteValidator _routeValidator
-                                   )
+    public class RequestMiddleware(RequestDelegate _next,RouteValidator _routeValidator)
     {
-        const string IsGatewayEnabled = "IsGatewayEnabled";
-
         public async Task Invoke(HttpContext context,
                                  SessionDetail session,
+                                 FierHubConfig _fierHubConfig,
                                  FierhubGatewayFilter gatewayAuthorization,
-                                 FierhubServiceFilter serviceAuthorization,
-                                 FierhubCommonService fierhubCommonService
+                                 FierhubServiceFilter serviceAuthorization
                                  )
         {
             try
             {
-                var authorization = string.Empty;
-                var isGatewayEnabled = false;
-                var claimsValue = string.Empty;
-
                 // By pass anonymous
                 if (_routeValidator.TestAnonymous(_next, context) || _routeValidator.TestRoute(_next, context))
                 {
@@ -34,60 +25,45 @@ namespace fierhub_authcheck_net.Middleware
                     return;
                 }
 
-                Parallel.ForEach(context.Request.Headers, header =>
-                {
-                    if (header.Value.FirstOrDefault() != null)
-                    {
-                        switch (header.Key.ToLower())
-                        {
-                            case ApplicationConstants.Authorization:
-                                authorization = header.Value.FirstOrDefault();
-                                break;
-                            case ApplicationConstants.database:
-                                session.LocalConnectionString = header.Value!;
-                                break;
-                            case IsGatewayEnabled:
-                                isGatewayEnabled = true;
-                                break;
-                            case "X-Claims":
-                                claimsValue = header.Value;
-                                break;
-                        }
-                    }
-                });
 
-                if (!isGatewayEnabled)
+                if (_fierHubConfig.Configuration.IsGatewayService)
                 {
-                    var claims = gatewayAuthorization.AuthorizationToken(authorization);
-                    if (!_fierHubConfig.IsApiGatewayEnable)
+                    context.Request.Headers.TryGetValue(FierhubConstants.Authorization, out StringValues authorization);
+                    if (string.IsNullOrEmpty(authorization))
                     {
-                        context.Request.Headers.Append("X-Gateway-Enalbed", "1");
-                        context.Request.Headers.Append("X-Claims", JsonConvert.SerializeObject(claims));
+                        throw new UnauthorizedAccessException("Invalid token or token not found.");
                     }
-                    else
-                    {
-                        //_routeValidator.TestConnection();
-                        serviceAuthorization.AuthorizationToken(claims);
-                    }
+
+                    var claims = gatewayAuthorization.ExtractClaims(authorization);
+                    context.Request.Headers.Append(FierhubConstants.GatewayEnabled, "1");
+                    context.Request.Headers.Append(FierhubConstants.Claims, JsonConvert.SerializeObject(claims));
                 }
                 else
                 {
-                    //_routeValidator.TestConnection();
+                    context.Request.Headers.TryGetValue(FierhubConstants.Claims, out StringValues claimsValue);
+                    if (string.IsNullOrEmpty(claimsValue))
+                    {
+                        throw new UnauthorizedAccessException("Claims not found in token.");
+                    }
+
                     var mappedClaims = JsonConvert.DeserializeObject<Dictionary<string, string>>(claimsValue);
-                    serviceAuthorization.AuthorizationToken(mappedClaims);
+                    serviceAuthorization.StoreClaims(mappedClaims);
                 }
 
-                fierhubCommonService.LoadDbConfiguration();
                 await _next(context);
             }
-            catch (EmstumException)
+            catch
             {
                 throw;
             }
-            catch (Exception)
-            {
-                throw;
-            }
+        }
+    }
+
+    public static class FierhubAuthentication
+    {
+        public static IApplicationBuilder UseFierhubAuthentication(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<RequestMiddleware>();
         }
     }
 }

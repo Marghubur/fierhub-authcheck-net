@@ -1,12 +1,13 @@
 ﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
+using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
 
 namespace fierhub_authcheck_net.IService
 {
     public interface IFierHubService
     {
-        Task<ApiAuthResponse> GenerateToken(object claims);
-        Task<ApiAuthResponse> GenerateToken(object claims, string userId);
-        Task<ApiAuthResponse> GenerateToken(object claims, List<string> roles);
-        Task<ApiAuthResponse> GenerateToken(object claims, string userId, List<string> roles);
+        Task<FierhubAuthResponse> GenerateToken(object claims);
+        Task<FierhubAuthResponse> GenerateToken(object claims, string userId);
+        Task<FierhubAuthResponse> GenerateToken(object claims, List<string> roles);
+        Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles);
     }
 }

@@ -1,26 +1,23 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
-using Bt.Ems.Lib.PipelineConfig.Model.ExceptionModel;
-using fierhub_authcheck_net.Model;
+﻿using fierhub_authcheck_net.Model;
 
 namespace fierhub_authcheck_net.Middleware.Service
 {
-    public class FierhubServiceFilter(SessionDetail _session, CurrentSession currentSession)
+    public class FierhubServiceFilter(SessionDetail _session, FierHubConfig _fierHubConfig)
     {
-        public void AuthorizationToken(Dictionary<string, string> mappedClaims)
+        public void StoreClaims(Dictionary<string, string> claims)
         {
-            if (mappedClaims != null)
+            if (claims == null || claims.Count == 0)
             {
-                LoadSession(mappedClaims);
+                throw new UnauthorizedAccessException("Not found any claims");
             }
-            else
-            {
-                throw EmstumException.Unauthorized("Authorization token not found.");
-            }
+
+            _fierHubConfig.Claims = claims;
         }
 
-        public void LoadSession(Dictionary<string, string> claims)
+        public void MapClaims<T>(Dictionary<string, string> claims) where T : new()
         {
             _session.Claims = claims;
+            T instance = new T();
 
             claims.TryGetValue("fierhub_autogen_id", out string id);
             if (id != null)
@@ -34,7 +31,7 @@ namespace fierhub_authcheck_net.Middleware.Service
                 _session.Roles = roles.Split(",").ToList<string>();
             }
 
-            var properties = typeof(CurrentSession).GetProperties();
+            var properties = typeof(T).GetProperties();
 
             if (claims.Count > 0)
             {
@@ -67,7 +64,7 @@ namespace fierhub_authcheck_net.Middleware.Service
                             }
 
                             if (convertedValue != null)
-                                prop.SetValue(currentSession, convertedValue);
+                                prop.SetValue(instance, convertedValue);
                         }
                         catch
                         {
