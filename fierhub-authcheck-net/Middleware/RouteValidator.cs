@@ -6,11 +6,9 @@ namespace fierhub_authcheck_net.Middleware
 {
     public class RouteValidator(FierHubConfig _fierHubConfig)
     {
-        // private readonly List<string> _routes = new List<string>();
-
         public bool TestRoute(RequestDelegate next, HttpContext context)
         {
-            return _fierHubConfig.Authorize.Routes.Any(x => context.Request.Path.ToString().Contains(x, StringComparison.OrdinalIgnoreCase));
+            return _fierHubConfig?.Authorize?.Routes?.Any(x => context.Request.Path.ToString().Contains(x, StringComparison.OrdinalIgnoreCase)) ?? false;
         }
 
         public bool TestAnonymous(RequestDelegate next, HttpContext context)
