@@ -1,6 +1,4 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
-using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
-using fierhub_authcheck_net.IService;
+﻿using fierhub_authcheck_net.IService;
 using fierhub_authcheck_net.Model;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -45,14 +43,14 @@ namespace fierhub_authcheck_net.Service
 
             if (userId != null) claims.Add("fierhub_autogen_id", userId);
             if (roles != null) claims.Add("fierhub_autogen_roles", roles.Aggregate((x, y) => x + "," + y));
-
+            var jwtSecret = _fierHubConfig.Secrets.Find(x => x.IsPrimary);
             TokenRequestBody tokenRequestBody = new TokenRequestBody
             {
                 Claims = claims,
-                ExpiryTimeInSeconds = _fierHubConfig.JwtSecret.ExpiryTimeInSeconds,
-                Issuer = _fierHubConfig.JwtSecret.Issuer,
-                Key = _fierHubConfig.JwtSecret.Key,
-                RefreshTokenExpiryTimeInSeconds = _fierHubConfig.JwtSecret.RefreshTokenExpiryTimeInSeconds,
+                ExpiryTimeInSeconds = jwtSecret.ExpiryTimeInSeconds,
+                Issuer = jwtSecret.Issuer,
+                Key = jwtSecret.Key,
+                RefreshTokenExpiryTimeInSeconds = jwtSecret.RefreshTokenExpiryTimeInSeconds,
             };
 
             var result = await _fierhubServiceRequest.PostRequestAsync<FierhubAuthResponse>(            

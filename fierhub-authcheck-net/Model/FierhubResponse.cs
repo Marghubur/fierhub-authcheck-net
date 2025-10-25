@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel
+namespace fierhub_authcheck_net.Model
 {
     public class FierhubResponse
     {

@@ -1,5 +1,5 @@
 ﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
-using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model.MicroserviceModel;
+using fierhub_authcheck_net.Model;
 
 namespace fierhub_authcheck_net.IService
 {

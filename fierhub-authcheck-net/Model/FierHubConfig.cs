@@ -1,4 +1,4 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
+﻿using fierhub_authcheck_net.Service;
 using Newtonsoft.Json;
 
 namespace fierhub_authcheck_net.Model
