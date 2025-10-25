@@ -11,7 +11,7 @@ namespace fierhub_authcheck_net.Model
         public ConfigurationModel ConfigurationGateway { get; set; }
         public ConfigurationModel ConfigurationService { get; set; }
         public ConfigurationModel Configuration { get; set; }
-        public List<ConnectionDetail> ConnectionDetails { get; set; }
+        public List<ConnectionDetail> Connections { get; set; }
         public List<TokenRequestBody> Secrets { get; set; }
         public Dictionary<string, string> Claims { set; get; }
 
@@ -37,7 +37,7 @@ namespace fierhub_authcheck_net.Model
             Datasource = datasource;
             Authorize = authorize;
             Configuration = configuration;
-            ConnectionDetails = connectionDetails;
+            Connections = connectionDetails;
             Secrets = secrets;
         }
 
@@ -95,7 +95,7 @@ namespace fierhub_authcheck_net.Model
             // check configuraiton settings
             CheckConfigurationSettings();
 
-            ConnectionDetails = new List<ConnectionDetail>();
+            Connections = new List<ConnectionDetail>();
             if (connections == null)
             {
                 if (Datasource == null)
@@ -129,7 +129,7 @@ namespace fierhub_authcheck_net.Model
         {
             foreach (var conn in connections)
             {
-                ConnectionDetails.Add(new ConnectionDetail
+                Connections.Add(new ConnectionDetail
                 {
                     ConnectionString = conn.Value,
                     Name = conn.Key,
@@ -166,7 +166,7 @@ namespace fierhub_authcheck_net.Model
                     throw new Exception("Fierhub Datasource must contain files, Please register with https://www.fierhub.com register and follow the step.");
                 }
 
-                ConnectionDetails.Add(new ConnectionDetail
+                Connections.Add(new ConnectionDetail
                 {
                     ConnectionString = databaseProperties.BuildConnectionString(),
                     Name = file,

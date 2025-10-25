@@ -33,8 +33,16 @@ namespace fierhub_authcheck_net.Middleware
                     }
 
                     var claims = gatewayAuthorization.ExtractClaims(authorization);
-                    context.Request.Headers.Append(FierhubConstants.GatewayEnabled, "1");
                     context.Request.Headers.Append(FierhubConstants.Claims, JsonConvert.SerializeObject(claims));
+
+                    var headers = context.Request.Headers.Where(x => x.Key.StartsWith(FierhubConstants.HeaderPrefix));
+                    if (headers != null && headers.ToList().Count > 0)
+                    {
+                        foreach (var header in headers)
+                        {
+                            context.Request.Headers.Append(header.Key, header.Value);
+                        }
+                    }
                 }
                 else
                 {

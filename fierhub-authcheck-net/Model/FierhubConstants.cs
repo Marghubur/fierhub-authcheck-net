@@ -4,8 +4,8 @@
     {
         public const string Authorization = "authorization";
         public const string ApplicationJson = @"application/json";
-        public const string Code = "code";
-        public const string Claims = "x-claims";
-        public const string GatewayEnabled = "x-gateway-enalbed";
+        public const string Code = "x-fier-code";
+        public const string Claims = "x-fier-claims";
+        public const string HeaderPrefix = "x-fier-";
     }
 }

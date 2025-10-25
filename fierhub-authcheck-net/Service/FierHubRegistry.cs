@@ -102,13 +102,17 @@ namespace fierhub_authcheck_net.Service
 
             ConfigurationFierhub(fierHubConfig, httpServiceRequest);
             LoadJwtSecret(fierHubConfig, httpServiceRequest);
-            RegisterJWTTokenService(fierHubConfig.Secrets.FirstOrDefault(x => x.IsPrimary).Key);
+
+            if (fierHubConfig.Secrets != null)
+            {
+                RegisterJWTTokenService(fierHubConfig.Secrets.FirstOrDefault(x => x.IsPrimary).Key);
+            }
 
             fierHubConfigInstance.Initialize(
                 fierHubConfig.Datasource,
                 fierHubConfig.Authorize,
                 fierHubConfig.Configuration,
-                fierHubConfig.ConnectionDetails,
+                fierHubConfig.Connections,
                 fierHubConfig.Secrets
             );
 
@@ -129,24 +133,28 @@ namespace fierhub_authcheck_net.Service
 
         private void LoadJwtSecret(FierHubConfig fierHubConfig, FierhubServiceRequest httpServiceRequest)
         {
-            var payload = new
+            if (fierHubConfig.Configuration.FileName != null)
             {
-                accessToken = fierHubConfig.Configuration.Token,
-                fileName = fierHubConfig.Configuration.FileName
-            };
+                var payload = new
+                {
+                    accessToken = fierHubConfig.Configuration.Token,
+                    fileName = fierHubConfig.Configuration.FileName
+                };
 
-            var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
-                "https://www.fierhub.com/api/fileContent/readFile",
-                JsonConvert.SerializeObject(payload)
-            ).ConfigureAwait(false).GetAwaiter().GetResult();
+                var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
+                    "https://www.fierhub.com/api/fileContent/readFile",
+                    JsonConvert.SerializeObject(payload)
+                ).ConfigureAwait(false).GetAwaiter().GetResult();
 
-            var tokenRequestBody = JsonConvert.DeserializeObject<TokenRequestBody>((string)responseModel!.responseBody!)!;
-            if (tokenRequestBody == null)
-            {
-                throw new Exception("Token detail not found in fierhub server.");
+                var tokenRequestBody = JsonConvert.DeserializeObject<TokenRequestBody>((string)responseModel!.responseBody!)!;
+                if (tokenRequestBody == null)
+                {
+                    throw new Exception("Token detail not found in fierhub server.");
+                }
+
+                if (fierHubConfig.Secrets == null) fierHubConfig.Secrets = new List<TokenRequestBody>();
+                fierHubConfig.Secrets.Add(tokenRequestBody);
             }
-
-            fierHubConfig.Secrets.Add(tokenRequestBody);
         }
 
         private FierHubConfig GetConfigurationDetailFromFierhub(FierhubServiceRequest fierhubServiceRequest, string accessToken, string fileName)
