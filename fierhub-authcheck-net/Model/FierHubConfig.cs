@@ -6,32 +6,40 @@ namespace fierhub_authcheck_net.Model
     public class FierHubConfig
     {
         public TokenRequestBody JwtSecret { get; set; }
-        public DatasourceModel Datasource { get; set; }
+        public List<DatasourceModel> Datasource { get; set; }
         public AuthorizeModel Authorize { get; set; }
         public ConfigurationModel ConfigurationGateway { get; set; }
         public ConfigurationModel ConfigurationService { get; set; }
         public ConfigurationModel Configuration { get; set; }
-        public List<ConnectionDetail> Connections { get; set; }
+        public List<DatasourceModel> Connections { get; set; }
         public List<TokenRequestBody> Secrets { get; set; }
+        public List<string> AppSettingFiles { get; set; }
         public Dictionary<string, string> Claims { set; get; }
+        public Dictionary<string, KeyValueRecords> Records { set; get; }
 
         private static readonly object _lock = new object();
         private static FierHubConfig _instance = new FierHubConfig();
 
         public static FierHubConfig Instance()
         {
-            if( _instance == null)
+            if (_instance == null)
                 lock (_lock)
-                    if(_instance == null)
+                    if (_instance == null)
                         _instance = new FierHubConfig();
 
             return _instance;
         }
 
-        public void Initialize(DatasourceModel datasource,
+        public class KeyValueRecords
+        {
+            public string Key { get; set; }
+            public string Value { get; set; }
+        }
+
+        public void Initialize(List<DatasourceModel> datasource,
             AuthorizeModel authorize,
             ConfigurationModel configuration,
-            List<ConnectionDetail> connectionDetails,
+            List<DatasourceModel> connectionDetails,
             List<TokenRequestBody> secrets)
         {
             Datasource = datasource;
@@ -64,17 +72,12 @@ namespace fierhub_authcheck_net.Model
             public string FileName { get; set; }
         }
 
-        public class ConnectionDetail
-        {
-            public string Name { get; set; }
-            public string ConnectionString { get; set; }
-            public bool Primay { get; set; }
-        }
-
         public class DatasourceModel
         {
-            public List<string> Files { get; set; }
-            public bool Primary { set; get; }
+            public int Order { get; set; } = 0;
+            public string Name { get; set; }
+            public string Url { set; get; }
+            public string ConnectionString { set; get; }
         }
 
         public class AuthorizeModel
@@ -90,62 +93,23 @@ namespace fierhub_authcheck_net.Model
             }
         }
 
-        public void ConfigureUses(FierhubServiceRequest httpServiceRequest, IDictionary<string, string> connections)
+        public void ConfigureUses(FierhubServiceRequest httpServiceRequest)
         {
             // check configuraiton settings
             CheckConfigurationSettings();
 
-            Connections = new List<ConnectionDetail>();
-            if (connections == null)
-            {
-                if (Datasource == null)
-                {
-                    throw new Exception("No connection detail found, please add Connections or Fierhub Datasource.");
-                }
-
-                if (Datasource.Files == null || Datasource.Files.Count == 0)
-                {
-                    throw new Exception("Fierhub Datasource must contain files, Please register with https://www.fierhub.com register and follow the step.");
-                }
-
-                LoadDatabaseProperties(httpServiceRequest);
-            }
-
-            if (Datasource == null)
-            {
-                if (connections == null)
-                {
-                    throw new Exception("No connection detail found, please add Connections or Fierhub Datasource.");
-                }
-
-                BindConnections(connections);
-            }
-
+            Connections ??= new List<DatasourceModel>();
             LoadDatabaseProperties(httpServiceRequest);
-            BindConnections(connections);
-        }
-
-        private void BindConnections(IDictionary<string, string> connections)
-        {
-            foreach (var conn in connections)
-            {
-                Connections.Add(new ConnectionDetail
-                {
-                    ConnectionString = conn.Value,
-                    Name = conn.Key,
-                    Primay = false,
-                });
-            }
         }
 
         private void LoadDatabaseProperties(FierhubServiceRequest httpServiceRequest)
         {
-            foreach (string file in Datasource.Files)
+            foreach (var datasource in Datasource)
             {
                 var payload = new
                 {
                     accessToken = Configuration.Token,
-                    fileName = file
+                    fileName = datasource.Url
                 };
 
                 var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
@@ -166,11 +130,11 @@ namespace fierhub_authcheck_net.Model
                     throw new Exception("Fierhub Datasource must contain files, Please register with https://www.fierhub.com register and follow the step.");
                 }
 
-                Connections.Add(new ConnectionDetail
+                Connections.Add(new DatasourceModel
                 {
                     ConnectionString = databaseProperties.BuildConnectionString(),
-                    Name = file,
-                    Primay = Datasource.Primary,
+                    Name = datasource.Name,
+                    Order = datasource.Order,
                 });
             }
         }

@@ -121,14 +121,12 @@ namespace fierhub_authcheck_net.Service
 
         private void ConfigurationFierhub(FierHubConfig fierHubConfig, FierhubServiceRequest httpServiceRequest)
         {
-            var connections = _builder.Configuration
-                .GetSection("ConnectionStrings")
-                .Get<Dictionary<string, string>>();
-
-            if (fierHubConfig.Datasource != null || connections != null)
+            if (fierHubConfig.Datasource == null && fierHubConfig.Connections == null)
             {
-                fierHubConfig.ConfigureUses(httpServiceRequest, connections);
+                throw new Exception("Connection not found your fierhub configuration.");
             }
+
+            fierHubConfig.ConfigureUses(httpServiceRequest);
         }
 
         private void LoadJwtSecret(FierHubConfig fierHubConfig, FierhubServiceRequest httpServiceRequest)
