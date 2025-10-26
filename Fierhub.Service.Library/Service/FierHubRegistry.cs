@@ -207,7 +207,14 @@ namespace Fierhub.Service.Library.Service
             _builder.Services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                // This makes property names PascalCase globally
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = null // null → PascalCase (use C# property names as-is)
+                };
+
+                // Optional: allow camelCase JSON input to map to PascalCase model
+                options.SerializerSettings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore;
             });
 
             _builder.Services.AddControllers()
