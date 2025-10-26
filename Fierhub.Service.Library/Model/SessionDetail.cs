@@ -1,4 +1,4 @@
-﻿namespace fierhub_authcheck_net.Model
+﻿namespace Fierhub.Service.Library.Model
 {
     public class SessionDetail
     {

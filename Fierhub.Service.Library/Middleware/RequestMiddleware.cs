@@ -1,11 +1,11 @@
-﻿using fierhub_authcheck_net.Middleware.Service;
-using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Middleware.Service;
+using Fierhub.Service.Library.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
-namespace fierhub_authcheck_net.Middleware
+namespace Fierhub.Service.Library.Middleware
 {
     public class RequestMiddleware(RequestDelegate _next, FierHubConfig _fierHubConfig, RouteValidator _routeValidator)
     {

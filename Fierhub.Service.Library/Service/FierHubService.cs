@@ -1,9 +1,9 @@
-﻿using fierhub_authcheck_net.IService;
-using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.IService;
+using Fierhub.Service.Library.Model;
 using Newtonsoft.Json;
 using System.Reflection;
 
-namespace fierhub_authcheck_net.Service
+namespace Fierhub.Service.Library.Service
 {
     public class FierHubService : IFierHubService
     {

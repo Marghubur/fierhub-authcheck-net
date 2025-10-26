@@ -1,8 +1,8 @@
-﻿using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
-namespace fierhub_authcheck_net.Middleware
+namespace Fierhub.Service.Library.Middleware
 {
     public class RouteValidator(FierHubConfig _fierHubConfig)
     {

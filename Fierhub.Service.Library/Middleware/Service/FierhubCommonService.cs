@@ -1,9 +1,9 @@
-﻿using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Model;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-namespace fierhub_authcheck_net.Middleware.Service
+namespace Fierhub.Service.Library.Middleware.Service
 {
     public class FierhubCommonService(FierHubConfig fierHubConfig)
     {

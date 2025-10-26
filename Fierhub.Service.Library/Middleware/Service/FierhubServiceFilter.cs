@@ -1,6 +1,6 @@
-﻿using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Model;
 
-namespace fierhub_authcheck_net.Middleware.Service
+namespace Fierhub.Service.Library.Middleware.Service
 {
     public class FierhubServiceFilter(SessionDetail _session, FierHubConfig _fierHubConfig)
     {
@@ -28,7 +28,7 @@ namespace fierhub_authcheck_net.Middleware.Service
             claims.TryGetValue("fierhub_autogen_roles", out string roles);
             if (id != null)
             {
-                _session.Roles = roles.Split(",").ToList<string>();
+                _session.Roles = roles.Split(",").ToList();
             }
 
             var properties = typeof(T).GetProperties();

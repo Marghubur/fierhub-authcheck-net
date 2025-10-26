@@ -1,7 +1,7 @@
-﻿using fierhub_authcheck_net.IService;
-using fierhub_authcheck_net.Middleware;
-using fierhub_authcheck_net.Middleware.Service;
-using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.IService;
+using Fierhub.Service.Library.Middleware;
+using Fierhub.Service.Library.Middleware.Service;
+using Fierhub.Service.Library.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Text;
 
-namespace fierhub_authcheck_net.Service
+namespace Fierhub.Service.Library.Service
 {
     public class FierHubRegistry
     {
@@ -36,7 +36,7 @@ namespace fierhub_authcheck_net.Service
             _builder.Services.AddScoped<FierhubCommonService>();
 
             _builder.Services.AddSingleton<FierhubServiceRequest>();
-            _builder.Services.AddSingleton<FierHubConfig>(x =>
+            _builder.Services.AddSingleton(x =>
             {
                 return FierHubConfig.Instance();
             });

@@ -1,4 +1,4 @@
-﻿namespace fierhub_authcheck_net.Middleware.Service
+﻿namespace Fierhub.Service.Library.Middleware.Service
 {
     public class FierhubGatewayFilter(FierhubCommonService _fierhubCommonService)
     {

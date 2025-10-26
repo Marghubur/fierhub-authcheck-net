@@ -1,11 +1,11 @@
-﻿using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace fierhub_authcheck_net.Service
+namespace Fierhub.Service.Library.Service
 {
     public class FierhubServiceRequest
     {

@@ -1,6 +1,6 @@
-﻿using fierhub_authcheck_net.Model;
+﻿using Fierhub.Service.Library.Model;
 
-namespace fierhub_authcheck_net.IService
+namespace Fierhub.Service.Library.IService
 {
     public interface IFierHubService
     {

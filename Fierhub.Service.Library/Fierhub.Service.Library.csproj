@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>fierhub_authcheck_net</RootNamespace>
+    <RootNamespace>Fierhub.Service.Library</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
 
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-	<PackageId>fierhub-authcheck-net</PackageId>
-	<Version>1.0.4</Version>
+	<PackageId>Fierhub.Service.Library</PackageId>
+	<Version>1.0.1</Version>
 	<Authors>BottomHalf</Authors>
 	<Company>BottomHalf Pvt. Ltd.</Company>
 	<Description>This is my budget package.</Description>
