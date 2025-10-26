@@ -8,9 +8,9 @@
 
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 	<PackageId>fierhub-authcheck-net</PackageId>
-	<Version>1.0.3</Version>
-	<Authors>Your Name</Authors>
-	<Company>BottomHalf</Company>
+	<Version>1.0.4</Version>
+	<Authors>BottomHalf</Authors>
+	<Company>BottomHalf Pvt. Ltd.</Company>
 	<Description>This is my budget package.</Description>
   </PropertyGroup>
 

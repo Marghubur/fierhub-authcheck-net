@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest
+namespace fierhub_authcheck_net.Service
 {
     public class FierhubServiceRequest
     {

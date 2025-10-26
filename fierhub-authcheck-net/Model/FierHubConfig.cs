@@ -1,4 +1,4 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Service.HttpMicroserviceRequest;
+﻿using fierhub_authcheck_net.Service;
 using Newtonsoft.Json;
 
 namespace fierhub_authcheck_net.Model
@@ -100,6 +100,21 @@ namespace fierhub_authcheck_net.Model
 
             Connections ??= new List<DatasourceModel>();
             LoadDatabaseProperties(httpServiceRequest);
+            ValidateDatasourceOrder();
+        }
+
+        private void ValidateDatasourceOrder()
+        {
+            if (Connections.Any())
+            {
+                var filteredConnection = Connections.Where(x => x.Order > 0).ToList();
+                var uniqeOrder = new HashSet<int>();
+                foreach (var item in filteredConnection)
+                {
+                    if (!uniqeOrder.Add(item.Order))
+                        throw new Exception($"Duplicate order of {item.Name} datasource");
+                }
+            }
         }
 
         private void LoadDatabaseProperties(FierhubServiceRequest httpServiceRequest)
