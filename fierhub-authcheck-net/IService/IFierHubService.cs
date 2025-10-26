@@ -1,5 +1,4 @@
-﻿using Bt.Ems.Lib.PipelineConfig.DbConfiguration.Model;
-using fierhub_authcheck_net.Model;
+﻿using fierhub_authcheck_net.Model;
 
 namespace fierhub_authcheck_net.IService
 {
