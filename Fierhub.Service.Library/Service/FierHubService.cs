@@ -41,8 +41,9 @@ namespace Fierhub.Service.Library.Service
         {
             var claims = ConvertObjectToDictionary(claimData);
 
-            if (userId != null) claims.Add("fierhub_autogen_id", userId);
-            if (roles != null) claims.Add("fierhub_autogen_roles", roles.Aggregate((x, y) => x + "," + y));
+            if (userId != null) claims.Add(FierhubConstants.UserId, userId);
+            if (roles != null) claims.Add(FierhubConstants.Roles, roles.Aggregate((x, y) => x + "," + y));
+
             var jwtSecret = _fierHubConfig.Secrets.Find(x => x.IsPrimary);
             TokenRequestBody tokenRequestBody = new TokenRequestBody
             {

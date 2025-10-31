@@ -7,10 +7,10 @@ using Newtonsoft.Json;
 
 namespace Fierhub.Service.Library.Middleware
 {
-    public class RequestMiddleware(RequestDelegate _next, FierHubConfig _fierHubConfig, RouteValidator _routeValidator)
+    public class FierhubRequestMiddleware(RequestDelegate _next, FierHubConfig _fierHubConfig, RouteValidator _routeValidator)
     {
         public async Task Invoke(HttpContext context,
-                                 SessionDetail session,
+                                 UserSession session,
                                  FierhubGatewayFilter gatewayAuthorization,
                                  FierhubServiceFilter serviceAuthorization
                                  )
@@ -34,15 +34,6 @@ namespace Fierhub.Service.Library.Middleware
 
                     var claims = gatewayAuthorization.ExtractClaims(authorization);
                     context.Request.Headers.Append(FierhubConstants.Claims, JsonConvert.SerializeObject(claims));
-
-                    //var headers = context.Request.Headers.Where(x => x.Key.StartsWith(FierhubConstants.HeaderPrefix));
-                    //if (headers != null && headers.ToList().Count > 0)
-                    //{
-                    //    foreach (var header in headers)
-                    //    {
-                    //        context.Request.Headers.Append(header.Key, header.Value);
-                    //    }
-                    //}
                 }
                 else
                 {
@@ -69,7 +60,7 @@ namespace Fierhub.Service.Library.Middleware
     {
         public static IApplicationBuilder UseFierhubAuthentication(this IApplicationBuilder app)
         {
-            return app.UseMiddleware<RequestMiddleware>();
+            return app.UseMiddleware<FierhubRequestMiddleware>();
         }
     }
 }

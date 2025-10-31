@@ -14,7 +14,6 @@ namespace Fierhub.Service.Library.Model
         public List<DatasourceModel> Connections { get; set; }
         public List<TokenRequestBody> Secrets { get; set; }
         public List<string> AppSettingFiles { get; set; }
-        public Dictionary<string, string> Claims { set; get; }
         public Dictionary<string, KeyValueRecords> Records { set; get; }
 
         private static readonly object _lock = new object();
@@ -47,22 +46,6 @@ namespace Fierhub.Service.Library.Model
             Configuration = configuration;
             Connections = connectionDetails;
             Secrets = secrets;
-        }
-
-        public T GetValue<T>(string key)
-        {
-            if (Claims == null)
-            {
-                throw new Exception("Claims are null or empty");
-            }
-
-            Claims!.TryGetValue(key, out var value);
-            if (value == null)
-            {
-                return default;
-            }
-
-            return (T)Convert.ChangeType(value, typeof(T));
         }
 
         public class ConfigurationModel

@@ -29,7 +29,7 @@ namespace Fierhub.Service.Library.Service
 
             _builder.Services.AddHttpClient();
             _builder.Services.AddHttpContextAccessor();
-            _builder.Services.AddScoped<SessionDetail>();
+            _builder.Services.AddScoped<UserSession>();
             _builder.Services.AddSingleton<RouteValidator>();
             _builder.Services.AddScoped<FierhubGatewayFilter>();
             _builder.Services.AddScoped<FierhubServiceFilter>();
@@ -51,7 +51,7 @@ namespace Fierhub.Service.Library.Service
 
             ConfigureFierhub();
             // RegisterJWTTokenService(fierHubConfig.Secrets.FirstOrDefault(x => x.IsPrimary).Key);
-            RegisterJsonHandler();
+            // RegisterJsonHandler();
         }
 
         private void ConfigureFierhub()
@@ -197,7 +197,7 @@ namespace Fierhub.Service.Library.Service
                                     ValidateIssuerSigningKey = true,
                                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                                     ClockSkew = TimeSpan.FromSeconds(5),
-                                    RoleClaimType = "fierhub_autogen_roles"
+                                    RoleClaimType = FierhubConstants.Roles
                                 };
                             });
         }

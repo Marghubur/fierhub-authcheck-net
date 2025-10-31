@@ -2,7 +2,7 @@
 
 namespace Fierhub.Service.Library.Middleware.Service
 {
-    public class FierhubServiceFilter(SessionDetail _session, FierHubConfig _fierHubConfig)
+    public class FierhubServiceFilter(UserSession _session)
     {
         public void StoreClaims(Dictionary<string, string> claims)
         {
@@ -11,7 +11,7 @@ namespace Fierhub.Service.Library.Middleware.Service
                 throw new UnauthorizedAccessException("Not found any claims");
             }
 
-            _fierHubConfig.Claims = claims;
+            _session.Claims = claims;
         }
 
         public void MapClaims<T>(Dictionary<string, string> claims) where T : new()
