@@ -1,8 +1,9 @@
 ﻿using Fierhub.Service.Library.Model;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace Fierhub.Service.Library.Service
@@ -88,6 +89,44 @@ namespace Fierhub.Service.Library.Service
             {
                 var client = _httpClientFactory.CreateClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+
+                var response = await client.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to call {endpoint}. Status: {response.StatusCode}");
+                }
+
+                return await GetResponseBody<T>(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                throw;
+            }
+        }
+
+        public async Task<T> GetRequestAsync<T>(string endpoint, Dictionary<string, string> headers)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+
+                foreach (var header in headers)
+                {
+                    if (!string.IsNullOrEmpty(header.Key) && !string.IsNullOrEmpty(header.Value))
+                    {
+                        if (header.Key.ToLower() == "authorization")
+                        {
+                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", header.Value);
+                        }
+                        else
+                        {
+                            request.Headers.Add(header.Key, header.Value);
+                        }
+                    }
+                }
 
                 var response = await client.SendAsync(request);
 

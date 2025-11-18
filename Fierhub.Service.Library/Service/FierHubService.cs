@@ -37,6 +37,27 @@ namespace Fierhub.Service.Library.Service
             return await Generate(claims, userId, roles);
         }
 
+        public async Task<T> ReadConfiguration<T>(string fileCode)
+        {
+            if (fileCode == null)
+            {
+                throw new Exception("FileCode is null or empty please check once.");
+            }
+
+            ResponseModel responseModel = await _fierhubServiceRequest.GetRequestAsync<ResponseModel>(
+                "https://www.fierhub.com/api/fileContent/getConfigFile/" + fileCode,
+                Map.Of("Authorization", _fierHubConfig.Configuration.Token)
+            );
+
+            var content = JsonConvert.DeserializeObject<T>((string)responseModel!.responseBody!)!;
+            if (content == null)
+            {
+                throw new Exception("Unable to get the file content from file: " + fileCode);
+            }
+
+            return content;
+        }
+
         public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null)
         {
             var claims = ConvertObjectToDictionary(claimData);
@@ -54,7 +75,7 @@ namespace Fierhub.Service.Library.Service
                 RefreshTokenExpiryTimeInSeconds = jwtSecret.RefreshTokenExpiryTimeInSeconds,
             };
 
-            var result = await _fierhubServiceRequest.PostRequestAsync<FierhubAuthResponse>(            
+            var result = await _fierhubServiceRequest.PostRequestAsync<FierhubAuthResponse>(
                 tokenManagerURL,
                 JsonConvert.SerializeObject(tokenRequestBody)
             );

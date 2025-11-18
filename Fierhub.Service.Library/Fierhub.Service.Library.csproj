@@ -8,7 +8,7 @@
 
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 	<PackageId>Fierhub.Service.Library</PackageId>
-	<Version>1.0.3</Version>
+	<Version>1.0.4</Version>
 	<Authors>BottomHalf</Authors>
 	<Company>BottomHalf Pvt. Ltd.</Company>
 	<Description>This is my budget package.</Description>
