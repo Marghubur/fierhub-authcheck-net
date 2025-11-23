@@ -5,6 +5,7 @@ namespace Fierhub.Service.Library.Model
 {
     public class FierHubConfig
     {
+        public string Token { get; set; }
         public TokenRequestBody JwtSecret { get; set; }
         public List<DatasourceModel> Datasource { get; set; }
         public AuthorizeModel Authorize { get; set; }
