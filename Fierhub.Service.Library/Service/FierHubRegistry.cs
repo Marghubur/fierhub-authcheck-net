@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System.Text;
 
@@ -61,7 +62,9 @@ namespace Fierhub.Service.Library.Service
 
             var fierHubConfigInstance = FierHubConfig.Instance();
 
-            var fierHubConfig = _builder.Configuration.GetSection("FierHub").Get<FierHubConfig>();
+            FierHubConfig fierHubConfig = _builder.Configuration.GetSection("FierHub").Get<FierHubConfig>();
+            if (!string.IsNullOrEmpty(fierHubConfig.Token))
+                fierHubConfig = ReadConfigurationFile(fierHubConfig.Token, httpServiceRequest);
 
             if (fierHubConfig.ConfigurationGateway == null && fierHubConfig.ConfigurationService == null)
             {
@@ -174,6 +177,29 @@ namespace Fierhub.Service.Library.Service
             }
 
             return fierHubConfig;
+        }
+
+        private FierHubConfig ReadConfigurationFile(string token, FierhubServiceRequest httpServiceRequest)
+        {
+            var payload = new
+            {
+                accessToken = token,
+            };
+
+            var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
+                    "http://localhost/api/config/readConfigFile",
+                    JsonConvert.SerializeObject(payload)
+                ).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            if (responseModel == null || responseModel.statusCode != 200)
+            {
+                throw new Exception("Fierhub Datasource must contain files, Please register with https://www.fierhub.com register and follow the step.");
+            }
+
+            var jsonObj = JObject.Parse((string)responseModel!.responseBody!);
+            var fierHubJson = jsonObj["FierHub"].ToString();
+
+            return JsonConvert.DeserializeObject<FierHubConfig>(fierHubJson);
         }
 
         #region JWTTOKEN_AND_JSON_CONFIGURATION
