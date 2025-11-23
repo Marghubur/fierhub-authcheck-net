@@ -187,7 +187,7 @@ namespace Fierhub.Service.Library.Service
             };
 
             var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
-                    "http://localhost/api/config/readConfigFile",
+                    "https://www.fierhub.com/api/config/readConfigFile",
                     JsonConvert.SerializeObject(payload)
                 ).ConfigureAwait(false).GetAwaiter().GetResult();
 
