@@ -58,7 +58,7 @@ namespace Fierhub.Service.Library.Service
             return content;
         }
 
-        public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null)
+        public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null, string device = "web")
         {
             var claims = ConvertObjectToDictionary(claimData);
 
@@ -69,6 +69,8 @@ namespace Fierhub.Service.Library.Service
             TokenRequestBody tokenRequestBody = new TokenRequestBody
             {
                 Claims = claims,
+                Sid = Guid.NewGuid().ToString(),
+                Device = device,
                 ExpiryTimeInSeconds = jwtSecret.ExpiryTimeInSeconds,
                 Issuer = jwtSecret.Issuer,
                 Key = jwtSecret.Key,
