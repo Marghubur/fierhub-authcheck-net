@@ -72,7 +72,7 @@ namespace Fierhub.Service.Library.Service
                     string errorContent = await response.Content.ReadAsStringAsync();
                     _logger.LogError("HTTP POST to {Url} failed. Status: {StatusCode}, Response: {Response}", endpoint, response.StatusCode, errorContent);
 
-                    throw new Exception($"Failed to call {endpoint}. Status: {response.StatusCode}");
+                    return await GetResponseBody<T>(response);
                 }
 
                 return await GetResponseBody<T>(response);

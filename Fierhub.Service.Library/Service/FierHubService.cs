@@ -1,6 +1,7 @@
 ﻿using Fierhub.Service.Library.IService;
 using Fierhub.Service.Library.Model;
 using Newtonsoft.Json;
+using System.Net;
 using System.Reflection;
 
 namespace Fierhub.Service.Library.Service
@@ -32,9 +33,9 @@ namespace Fierhub.Service.Library.Service
             return await Generate(claimData: claims, roles: roles);
         }
 
-        public async Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles)
+        public async Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles, string audiance)
         {
-            return await Generate(claims, userId, roles);
+            return await Generate(claims, userId, roles, audiance);
         }
 
         public async Task<T> ReadConfiguration<T>(string fileCode)
@@ -58,7 +59,7 @@ namespace Fierhub.Service.Library.Service
             return content;
         }
 
-        public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null, string device = "web")
+        public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null, string device = "web", string audiance = "service")
         {
             var claims = ConvertObjectToDictionary(claimData);
 
@@ -74,6 +75,7 @@ namespace Fierhub.Service.Library.Service
                 ExpiryTimeInSeconds = jwtSecret.ExpiryTimeInSeconds,
                 Issuer = jwtSecret.Issuer,
                 Key = jwtSecret.Key,
+                Audiance = audiance,
                 RefreshTokenExpiryTimeInSeconds = jwtSecret.RefreshTokenExpiryTimeInSeconds,
             };
 
@@ -81,6 +83,11 @@ namespace Fierhub.Service.Library.Service
                 tokenManagerURL,
                 JsonConvert.SerializeObject(tokenRequestBody)
             );
+
+            if(result.HttpStatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("Error: " + result.ErrorMessage);
+            }
 
             return result;
         }

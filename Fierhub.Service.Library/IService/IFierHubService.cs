@@ -7,7 +7,7 @@ namespace Fierhub.Service.Library.IService
         Task<FierhubAuthResponse> GenerateToken(object claims);
         Task<FierhubAuthResponse> GenerateToken(object claims, string userId);
         Task<FierhubAuthResponse> GenerateToken(object claims, List<string> roles);
-        Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles);
+        Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles, string audiance);
         Task<T> ReadConfiguration<T>(string fileCode);
     }
 }
