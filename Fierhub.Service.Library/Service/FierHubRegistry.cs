@@ -66,26 +66,26 @@ namespace Fierhub.Service.Library.Service
             if (!string.IsNullOrEmpty(fierHubConfig.Token))
                 fierHubConfig = ReadConfigurationFile(fierHubConfig.Token, httpServiceRequest);
 
-            if (fierHubConfig.ConfigurationGateway == null && fierHubConfig.ConfigurationService == null)
-            {
-                throw new Exception("Pleasa add Configure section in you fierhub json object");
-            }
+            //if (fierHubConfig.ConfigurationGateway == null && fierHubConfig.ConfigurationService == null)
+            //{
+            //    throw new Exception("Pleasa add Configure section in you fierhub json object");
+            //}
 
-            if (fierHubConfig.ConfigurationGateway != null && fierHubConfig.ConfigurationService != null)
-            {
-                throw new Exception("Can only configure either gateway or service");
-            }
+            //if (fierHubConfig.ConfigurationGateway != null && fierHubConfig.ConfigurationService != null)
+            //{
+            //    throw new Exception("Can only configure either gateway or service");
+            //}
 
-            if (fierHubConfig.ConfigurationGateway != null)
-            {
-                fierHubConfig.Configuration = fierHubConfig.ConfigurationGateway;
-                fierHubConfig.Configuration.IsGatewayService = true;
-            }
-            else
-            {
-                fierHubConfig.Configuration = fierHubConfig.ConfigurationService;
-                fierHubConfig.Configuration.IsGatewayService = false;
-            }
+            //if (fierHubConfig.ConfigurationGateway != null)
+            //{
+            //    fierHubConfig.Configuration = fierHubConfig.ConfigurationGateway;
+            //    fierHubConfig.Configuration.IsGatewayService = true;
+            //}
+            //else
+            //{
+            //    fierHubConfig.Configuration = fierHubConfig.ConfigurationService;
+            //    fierHubConfig.Configuration.IsGatewayService = false;
+            //}
 
             if (fierHubConfig.ConfiguredFromFierhub)
             {
@@ -102,8 +102,8 @@ namespace Fierhub.Service.Library.Service
                 fierHubConfig.Secrets = new List<TokenRequestBody> { fierHubConfig.JwtSecret };
             }
 
-            ConfigurationFierhub(fierHubConfig, httpServiceRequest);
-            LoadJwtSecret(fierHubConfig, httpServiceRequest);
+            // ConfigurationFierhub(fierHubConfig, httpServiceRequest);
+            // LoadJwtSecret(fierHubConfig, httpServiceRequest);
 
             if (fierHubConfig.Secrets != null)
             {
@@ -115,7 +115,8 @@ namespace Fierhub.Service.Library.Service
                 fierHubConfig.Authorize,
                 fierHubConfig.Configuration,
                 fierHubConfig.Connections,
-                fierHubConfig.Secrets
+                fierHubConfig.Secrets,
+                fierHubConfig.ConnectionStrings
             );
 
             fierHubConfig = null;
@@ -187,7 +188,7 @@ namespace Fierhub.Service.Library.Service
             };
 
             var responseModel = httpServiceRequest.PostRequestAsync<ResponseModel>(
-                    "https://www.fierhub.com/api/config/readConfigFile",
+                    "https://www.fierhub.com/api/fileContent/readConfigurationFile",
                     JsonConvert.SerializeObject(payload)
                 ).ConfigureAwait(false).GetAwaiter().GetResult();
 

@@ -16,6 +16,7 @@ namespace Fierhub.Service.Library.Model
         public List<TokenRequestBody> Secrets { get; set; }
         public List<string> AppSettingFiles { get; set; }
         public Dictionary<string, KeyValueRecords> Records { set; get; }
+        public Dictionary<string, string> ConnectionStrings { set; get; }
 
         private static readonly object _lock = new object();
         private static FierHubConfig _instance = new FierHubConfig();
@@ -40,13 +41,15 @@ namespace Fierhub.Service.Library.Model
             AuthorizeModel authorize,
             ConfigurationModel configuration,
             List<DatasourceModel> connectionDetails,
-            List<TokenRequestBody> secrets)
-        {
+            List<TokenRequestBody> secrets,
+            Dictionary<string, string> connectionStrings
+        ) {
             Datasource = datasource;
             Authorize = authorize;
             Configuration = configuration;
             Connections = connectionDetails;
             Secrets = secrets;
+            ConnectionStrings = connectionStrings;
         }
 
         public class ConfigurationModel
@@ -80,11 +83,11 @@ namespace Fierhub.Service.Library.Model
         public void ConfigureUses(FierhubServiceRequest httpServiceRequest)
         {
             // check configuraiton settings
-            CheckConfigurationSettings();
+            // CheckConfigurationSettings();
 
-            Connections ??= new List<DatasourceModel>();
-            LoadDatabaseProperties(httpServiceRequest);
-            ValidateDatasourceOrder();
+            // Connections ??= new List<DatasourceModel>();
+            // LoadDatabaseProperties(httpServiceRequest);
+            // ValidateDatasourceOrder();
         }
 
         private void ValidateDatasourceOrder()
