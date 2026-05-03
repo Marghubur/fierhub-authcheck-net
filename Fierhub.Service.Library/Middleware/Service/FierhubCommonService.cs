@@ -8,43 +8,125 @@ namespace Fierhub.Service.Library.Middleware.Service
     public class FierhubCommonService(FierHubConfig fierHubConfig)
     {
 
-        public Dictionary<string, string> GetValidatedClaims(string authorization)
+        public bool ValidateToken(string authorization)
         {
-            Dictionary<string, string> claims = new Dictionary<string, string>();
-            string token = authorization.Replace("Bearer", "").Trim();
+            if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
+                return false;
 
-            if (!string.IsNullOrEmpty(token) && token != "null")
+            string token = authorization.Substring("Bearer ".Length).Trim();
+
+            var handler = new JwtSecurityTokenHandler();
+
+            var jwtConfig = fierHubConfig.Secrets?.FirstOrDefault(x => x.IsPrimary)
+                ?? throw new Exception("Primary JWT config not found");
+
+            try
             {
-                var handler = new JwtSecurityTokenHandler();
-                if (fierHubConfig.Secrets == null || !fierHubConfig.Secrets.Any())
-                    throw new Exception("Jwt secret not found");
-
-                var jwtConfig = fierHubConfig.Secrets.Find(x => x.IsPrimary);
-                if (jwtConfig == null)
-                    throw new Exception("Primary jwt config not found");
-
-                handler.ValidateToken(token, new TokenValidationParameters
+                var validationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = false,
                     ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtConfig.Key!)
+                    ),
+
+                    ValidateIssuer = true,
                     ValidIssuer = jwtConfig.Issuer,
-                    ValidAudience = jwtConfig.Issuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Key!))
-                }, out SecurityToken validatedToken);
 
-                JwtSecurityToken securityToken = handler.ReadToken(token) as JwtSecurityToken;
+                    ValidateAudience = true,
+                    ValidAudience = jwtConfig.Audiance,
 
-                if (securityToken == null)
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                handler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                // 🔒 Extra algorithm validation
+                var jwtToken = validatedToken as JwtSecurityToken;
+                if (jwtToken == null ||
+                    jwtToken.Header.Alg != SecurityAlgorithms.HmacSha256)
                 {
-                    throw new UnauthorizedAccessException("Authorization is invalid");
+                    return false;
                 }
 
-                claims = securityToken!.Claims.ToDictionary(x => x.Type, x => x.Value);
+                return true;
             }
+            catch (SecurityTokenExpiredException)
+            {
+                throw new UnauthorizedAccessException("Token expired");
+            }
+            catch (SecurityTokenInvalidSignatureException)
+            {
+                throw new UnauthorizedAccessException("Token tampered");
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedAccessException("Invalid token: " + ex.Message);
+            }
+        }
 
-            return claims;
+        public Dictionary<string, string> GetValidatedClaims(string authorization)
+        {
+            if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
+                throw new UnauthorizedAccessException("Invalid Authorization header");
+
+            string token = authorization.Substring("Bearer ".Length).Trim();
+
+            var handler = new JwtSecurityTokenHandler();
+
+            var jwtConfig = fierHubConfig.Secrets?.FirstOrDefault(x => x.IsPrimary)
+                ?? throw new Exception("Primary JWT config not found");
+
+            try
+            {
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtConfig.Key!)
+                    ),
+
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtConfig.Issuer,
+
+                    ValidateAudience = true, // enable if needed
+                    ValidAudience = jwtConfig.Audiance, // set if ValidateAudience is true
+
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                // 🔥 Validate token + get principal
+                var principal = handler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                // 🔒 Optional: Algorithm check
+                var jwtToken = validatedToken as JwtSecurityToken;
+                if (jwtToken == null ||
+                    jwtToken.Header.Alg != SecurityAlgorithms.HmacSha256)
+                {
+                    throw new UnauthorizedAccessException("Invalid token algorithm");
+                }
+
+                // ✅ Convert claims to dictionary
+                return principal.Claims
+                    .GroupBy(c => c.Type)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First().Value // take first if duplicate
+                    );
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                throw new UnauthorizedAccessException("Token expired");
+            }
+            catch (SecurityTokenInvalidSignatureException)
+            {
+                throw new UnauthorizedAccessException("Token tampered");
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedAccessException("Invalid token: " + ex.Message);
+            }
         }
     }
 }

@@ -18,24 +18,24 @@ namespace Fierhub.Service.Library.Service
             _fierHubConfig = fierHubConfig;
         }
 
-        public async Task<FierhubAuthResponse> GenerateToken(object claims)
+        public async Task<FierhubAuthResponse> GenerateToken(object claims, string audiance)
         {
-            return await Generate(claimData: claims);
+            return await Generate(claimData: claims, audiance: audiance);
         }
 
-        public async Task<FierhubAuthResponse> GenerateToken(object claims, string userId)
+        public async Task<FierhubAuthResponse> GenerateToken(object claims, string audiance, string userId)
         {
-            return await Generate(claims, userId);
+            return await Generate(claims, audiance, userId);
         }
 
-        public async Task<FierhubAuthResponse> GenerateToken(object claims, List<string> roles)
+        public async Task<FierhubAuthResponse> GenerateToken(object claims, List<string> roles, string audiance)
         {
-            return await Generate(claimData: claims, roles: roles);
+            return await Generate(claimData: claims, audiance: audiance, roles: roles);
         }
 
-        public async Task<FierhubAuthResponse> GenerateToken(object claims, string userId, List<string> roles, string audiance)
+        public async Task<FierhubAuthResponse> GenerateToken(object claims, string audiance, string userId, List<string> roles)
         {
-            return await Generate(claims, userId, roles, audiance);
+            return await Generate(claims, audiance, userId, roles);
         }
 
         public async Task<T> ReadConfiguration<T>(string fileCode)
@@ -59,7 +59,7 @@ namespace Fierhub.Service.Library.Service
             return content;
         }
 
-        public async Task<FierhubAuthResponse> Generate(object claimData, string userId = null, List<string> roles = null, string device = "web", string audiance = "service")
+        public async Task<FierhubAuthResponse> Generate(object claimData, string audiance, string userId = null, List<string> roles = null, string device = "web")
         {
             var claims = ConvertObjectToDictionary(claimData);
 

@@ -2,15 +2,14 @@
 {
     public class FierhubGatewayFilter(FierhubCommonService _fierhubCommonService)
     {
-        public Dictionary<string, string> ExtractClaims(string authorization)
+        public bool ValidateToken(string authorization)
         {
-            Dictionary<string, string> claims = new Dictionary<string, string>();
             if (!string.IsNullOrEmpty(authorization))
             {
-                claims = _fierhubCommonService.GetValidatedClaims(authorization);
+                return _fierhubCommonService.ValidateToken(authorization);
             }
 
-            return claims;
+            return false;
         }
     }
 }
