@@ -1,9 +1,7 @@
-﻿using Fierhub.Service.Library.Model;
+using Fierhub.Service.Library.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
-using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace Fierhub.Service.Library.Service
@@ -15,7 +13,7 @@ namespace Fierhub.Service.Library.Service
 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<FierhubServiceRequest> _logger;
-        private readonly JsonSerializerSettings _jsonSettings;
+        private readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings();
 
         public FierhubServiceRequest(IHttpClientFactory httpClientFactory, ILogger<FierhubServiceRequest> logger)
         {
